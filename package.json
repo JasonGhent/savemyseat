@@ -12,7 +12,8 @@
   },
   "bin": {
     "savemyseat": "./bin/savemyseat",
-    "savemyseat-initialize": "./bin/savemyseat-initialize"
+    "savemyseat-initialize": "./bin/savemyseat-initialize",
+    "savemyseat-monitor": "./bin/savemyseat-monitor"
   },
   "devDependencies": {}
 }
