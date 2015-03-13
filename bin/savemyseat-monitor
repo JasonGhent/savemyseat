@@ -16,10 +16,10 @@ function monitor() {
   var backupConfigPath = path.resolve(backupConfigFile);
   var backupConfig = require(backupConfigPath);
   
-  runMonitoringLoop(10000);
+  runMonitoringLoop(10000, backupConfig);
 }
 
-function runMonitoringLoop(checkIntervalMs) {
+function runMonitoringLoop(checkIntervalMs, backupConfig) {
   function checkStatus(done) {
     request.get('http://127.0.0.1:5984/_active_tasks')
       .set('Accept', 'application/json')
@@ -29,16 +29,32 @@ function runMonitoringLoop(checkIntervalMs) {
           return done();
         }
         var activeTasks = res.body;
+        var expectedRunningBackups = _.keys(backupConfig);
+        var actualRunningBackups = [];
         _.each(activeTasks, function(task) {
           // skip if it's not a replication task
           if(task.type !== 'replication') {
             return;
           }
-          console.log('woot');
+
+          // if the running replication is one we don't expect, then skip
+          if(expectedRunningBackups.indexOf(task.target) === -1) {
+            return;
+          }
+
+          actualRunningBackups.push(task.target);
+
           if(task.doc_write_failures !== 0) {
-            console.error('failed to write %d doc(s)', task.doc_write_failures);
+            console.error('failed to write %d doc(s) to backup db @ "%s"', task.doc_write_failures, task.target);
           }
         });
+
+        var backupsNotRunning = _.difference(expectedRunningBackups, actualRunningBackups);
+
+        _.each(backupsNotRunning, function(backupNotRunning) {
+          console.log('%s backup expected to run but is missing from active tasks', backupNotRunning);
+        });
+
         return done();
       });
   }
@@ -49,15 +65,16 @@ function runMonitoringLoop(checkIntervalMs) {
     timeout = setTimeout(checkStatus.bind(null, next), checkIntervalMs);
   }
 
+  function shutdown() {
+    console.log('Shutting down gracefully');
+    clearTimeout(timeout);
+  }
+
   checkStatus(next);
 
-  process.on('SIGTERM', function() {
-    clearTimeout(timeout);
-  });
+  process.on('SIGTERM', shutdown);
 
-  process.on('SIGINT', function() {
-    clearTimeout(timeout);
-  });
+  process.on('SIGINT', shutdown);
 }
 
 monitor();
