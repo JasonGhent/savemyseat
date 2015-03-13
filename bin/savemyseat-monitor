@@ -1,0 +1,63 @@
+#!/usr/bin/env node
+var path = require('path');
+var program = require('commander');
+var request = require('superagent');
+var _ = require('lodash');
+
+program
+  .version('0.1.0')
+  .parse(process.argv);
+
+/**
+ * Runner for the monitoring daemon
+ */
+function monitor() {
+  var backupConfigFile = program.args[0];
+  var backupConfigPath = path.resolve(backupConfigFile);
+  var backupConfig = require(backupConfigPath);
+  
+  runMonitoringLoop(10000);
+}
+
+function runMonitoringLoop(checkIntervalMs) {
+  function checkStatus(done) {
+    request.get('http://127.0.0.1:5984/_active_tasks')
+      .set('Accept', 'application/json')
+      .end(function(err, res) {
+        if(err) {
+          console.error(err);
+          return done();
+        }
+        var activeTasks = res.body;
+        _.each(activeTasks, function(task) {
+          // skip if it's not a replication task
+          if(task.type !== 'replication') {
+            return;
+          }
+          console.log('woot');
+          if(task.doc_write_failures !== 0) {
+            console.error('failed to write %d doc(s)', task.doc_write_failures);
+          }
+        });
+        return done();
+      });
+  }
+
+  var timeout;
+
+  function next() {
+    timeout = setTimeout(checkStatus.bind(null, next), checkIntervalMs);
+  }
+
+  checkStatus(next);
+
+  process.on('SIGTERM', function() {
+    clearTimeout(timeout);
+  });
+
+  process.on('SIGINT', function() {
+    clearTimeout(timeout);
+  });
+}
+
+monitor();

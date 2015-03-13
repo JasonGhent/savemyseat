@@ -1,0 +1,117 @@
+#!/usr/bin/env node
+/**
+ * savemyseat initialize - Initialize the state of the replicator database
+ */
+var path = require('path');
+var util = require('util');
+var program = require('commander');
+var _ = require('lodash');
+var Q = require('Q');
+var nanoInit = require('nano');
+
+program
+  .version('0.1.0')
+  .parse(process.argv);
+
+
+/**
+ * Runner for initialize command
+ */
+function initialize() {
+  var backupConfigFile = program.args[0];
+  var backupConfigPath = path.resolve(backupConfigFile);
+
+  var backupConfig = require(backupConfigPath);
+
+  var nano = nanoInit('http://127.0.0.1:5984');
+  var replicatorDb = nano.use('_replicator');
+
+  // Iterate through the databases listed in the config and attempt to add them
+  // to the database
+  _.reduce(backupConfig, function(databaseInitializers, backupDbConfig, backupDbName) {
+    return databaseInitializers.then(initializeDatabaseBackup.bind(null, nano, replicatorDb, backupDbConfig, backupDbName));
+  }, Q()).then(
+    function success() {
+      console.log('Databases initialized');
+    },
+    function error(err) {
+      console.log('Database initialization failed');
+    }
+  )
+}
+
+function initializeDatabaseBackup(nano, replicatorDb, backupDbConfig, backupDbName) {
+  var backupDbReplicatorEntryId = util.format('%s-backup', backupDbName); 
+
+  // Load the current replicator entry for the backupDb if any
+  var newBackupDbReplicatorEntry = {
+    source: backupDbConfig.source,
+    target: backupDbName,
+    _id: backupDbReplicatorEntryId,
+    continuous: true
+  };
+
+  if(backupDbConfig.filter) {
+    newBackupDbReplicatorEntry.filter = backupDbConfig.filter;
+  }
+
+  ensureBackupDbIsCreated(nano, backupDbName)
+    .then(
+      function success() {
+        return loadDocFromDbOrNull(replicatorDb, backupDbReplicatorEntryId);
+      }
+    )
+    .then(
+      function success(currentBackupDbReplicatorEntry) {
+        if(currentBackupDbReplicatorEntry) {
+          newBackupDbReplicatorEntry._rev = currentBackupDbReplicatorEntry._rev;
+        }
+        return updateDocInDb(replicatorDb, backupDbReplicatorEntryId, newBackupDbReplicatorEntry);
+      }
+    );
+}
+
+function ensureBackupDbIsCreated(nano, backupDbName) {
+  return Q.nfcall(nano.db.get, backupDbName)
+    .then(
+      function success() {
+        return null;
+      },
+      function error(err) {
+        if(err.error !== 'not_found') {
+          throw err;
+        }
+        return Q.nfcall(nano.db.create, backupDbName);
+      }
+    );
+}
+
+function loadDocFromDbOrNull(db, docId) {
+  var deferred = Q.defer();
+
+  db.get(docId, function(err, body) {
+    if(err) {
+      // Ignore error if the doc doesn't exist
+      if(err.error === 'not_found') {
+        return deferred.resolve(null);
+      }
+      return deferred.reject(err);
+    }
+    return deferred.resolve(body);
+  });
+
+  return deferred.promise;
+}
+
+function updateDocInDb(db, docId, body) {
+  var deferred = Q.defer();
+  db.insert(body, docId, function(err, savedBody) {
+    if(err) {
+      return deferred.reject(err);
+    }
+    return deferred.resolve(savedBody);
+  });
+  return deferred.promise;
+}
+
+initialize();
