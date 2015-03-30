@@ -24,7 +24,7 @@ function initialize() {
 
   var savemyseat = Savemyseat.loadConfigFromFile(program.dbUrl, program.args[0]);
 
-  savemyseat.initializeBackupDatabases()
+  savemyseat.initializeDatabaseBackups()
     .then(
       function success() {
         console.log('Databases initialized');
