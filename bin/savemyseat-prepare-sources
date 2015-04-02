@@ -1,0 +1,40 @@
+#!/usr/bin/env node
+/**
+ * savemyseat initialize - Initialize the state of the replicator database
+ */
+var path = require('path');
+var util = require('util');
+var program = require('commander');
+var _ = require('lodash');
+var Q = require('Q');
+var nanoInit = require('nano');
+var Savemyseat = require('../lib/savemyseat').Savemyseat;
+
+program
+  .version('0.1.0')
+  .option('-d, --db-url [dbUrl]', 'The database host [http://127.0.0.1:5984]', 'http://127.0.0.1:5984')
+  .parse(process.argv);
+
+/**
+ * Runner for initialize command
+ */
+function prepareSources() {
+  var nano = nanoInit(program.dbUrl);
+  var replicatorDb = nano.use('_replicator');
+
+  var savemyseat = Savemyseat.loadConfigFromFile(program.dbUrl, program.args[0]);
+
+  savemyseat.prepareSourcesForBackup()
+    .then(
+      function success() {
+        console.log('Source databases prepared successfully');
+      },
+      function error(err) {
+        console.error(err);
+        console.error(err.stack);
+        console.log('Source databases preparation failed');
+      }
+    );
+}
+
+prepareSources();
