@@ -8,7 +8,8 @@
     "moment": "2.9.x",
     "nano": "6.1.x",
     "q": "1.1.x",
-    "superagent": "^1.0.0"
+    "superagent": "^1.0.0",
+    "uuid": "^2.0.1"
   },
   "bin": {
     "savemyseat": "./bin/savemyseat",

@@ -30,7 +30,6 @@ function initialize() {
         console.log('Databases initialized');
       },
       function error(err) {
-        console.error(err.stack);
         console.log('Database initialization failed');
       }
     );

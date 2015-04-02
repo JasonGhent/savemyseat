@@ -3,78 +3,51 @@ var path = require('path');
 var program = require('commander');
 var request = require('superagent');
 var _ = require('lodash');
+var Savemyseat = require('../lib/savemyseat').Savemyseat;
 
 program
   .version('0.1.0')
+  .option('-d, --db-url [dbUrl]', 'The database host [http://127.0.0.1:5984]', 'http://127.0.0.1:5984')
   .parse(process.argv);
 
 /**
  * Runner for the monitoring daemon
  */
 function monitor() {
-  var backupConfigFile = program.args[0];
-  var backupConfigPath = path.resolve(backupConfigFile);
-  var backupConfig = require(backupConfigPath);
+
+  var savemyseat = Savemyseat.loadConfigFromFile(program.dbUrl, program.args[0]);
+  var monitoringDaemon = savemyseat.monitor({
+
+  });
+
+  monitoringDaemon.on('error-triggered', function(name, messages, id) {
+    console.log(JSON.stringify({
+      id: id,
+      type: "error-triggered",
+      name: name,
+      messages: messages
+    }));
+  });
   
-  runMonitoringLoop(10000, backupConfig);
-}
+  monitoringDaemon.on('error-resolved', function(name, messages, id) {
+    console.log(JSON.stringify({
+      id: id,
+      type: "error-resolved",
+      name: name,
+      messages: messages
+    }));
+  });
 
-function runMonitoringLoop(checkIntervalMs, backupConfig) {
-  function checkStatus(done) {
-    request.get('http://127.0.0.1:5984/_active_tasks')
-      .set('Accept', 'application/json')
-      .end(function(err, res) {
-        if(err) {
-          console.error(err);
-          return done();
-        }
-        var activeTasks = res.body;
-        var expectedRunningBackups = _.keys(backupConfig);
-        var actualRunningBackups = [];
-        _.each(activeTasks, function(task) {
-          // skip if it's not a replication task
-          if(task.type !== 'replication') {
-            return;
-          }
-
-          // if the running replication is one we don't expect, then skip
-          if(expectedRunningBackups.indexOf(task.target) === -1) {
-            return;
-          }
-
-          actualRunningBackups.push(task.target);
-
-          if(task.doc_write_failures !== 0) {
-            console.error('failed to write %d doc(s) to backup db @ "%s"', task.doc_write_failures, task.target);
-          }
-        });
-
-        var backupsNotRunning = _.difference(expectedRunningBackups, actualRunningBackups);
-
-        _.each(backupsNotRunning, function(backupNotRunning) {
-          console.log('%s backup expected to run but is missing from active tasks', backupNotRunning);
-        });
-
-        return done();
-      });
-  }
-
-  var timeout;
-
-  function next() {
-    timeout = setTimeout(checkStatus.bind(null, next), checkIntervalMs);
-  }
-
-  function shutdown() {
-    console.log('Shutting down gracefully');
-    clearTimeout(timeout);
-  }
-
-  checkStatus(next);
-
-  process.on('SIGTERM', shutdown);
-
-  process.on('SIGINT', shutdown);
+  monitoringDaemon.on('error', function(err) {
+    console.log(JSON.stringify(err));
+  });
+  
+  process.on('SIGTERM', function() {
+    monitoringDaemon.stop();
+  });
+  process.on('SIGINT', function() {
+    monitoringDaemon.stop();
+  });
 }
 
 monitor();
