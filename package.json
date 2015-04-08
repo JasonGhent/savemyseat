@@ -16,5 +16,8 @@
     "savemyseat-initialize": "./bin/savemyseat-initialize",
     "savemyseat-monitor": "./bin/savemyseat-monitor"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "chai": "^2.2.0",
+    "couchdb-fixture": "git+ssh://git@github.com:virtru/couchdb-fixture.git"
+  }
 }
