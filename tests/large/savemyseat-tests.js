@@ -65,7 +65,7 @@ describe('Savemyseat', function() {
     savemyseat = Savemyseat.loadConfigFromObj(backupCouchdbUrl, backupConfigObj);
   });
 
-  it('should initialize the source database', function(done) {
+  it("should successfully replicate the source server's databases", function(done) {
     var backupDbWithoutDesignDoc = backupNano.use(DB_WITHOUT_DESIGN_DOC_NAME);
 
     savemyseat.prepareSourcesForBackup()
