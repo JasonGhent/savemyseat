@@ -1,6 +1,6 @@
 {
   "name": "savemyseat",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "scripts": {
     "test": "mocha tests/large"
   },
@@ -21,6 +21,6 @@
   },
   "devDependencies": {
     "chai": "^2.2.0",
-    "couchdb-fixture": "git+ssh://git@github.com:virtru/couchdb-fixture.git"
+    "couchdb-fixture": "0.1.x"
   }
 }
