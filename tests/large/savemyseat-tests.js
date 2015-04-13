@@ -73,7 +73,6 @@ describe('Savemyseat', function() {
   ];
 
   couchdbFixture(backupFixtureData).beforeEach(function(backupFixtureContext) {
-  }).beforeEach(function(backupFixtureContext) {
     var backupConfigObj = {};
     backupConfigObj[DB_WITH_DESIGN_DOC_NAME] = {
       source: util.format("%s/%s", sourceCouchdbUrl, DB_WITH_DESIGN_DOC_NAME)
