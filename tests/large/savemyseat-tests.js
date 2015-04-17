@@ -107,7 +107,7 @@ describe('Savemyseat', function() {
           assert.fail(null, null, 'should not succeed in retrieving document before replication');
         },
         function error(err) {
-          assert.equal(err.error, 'not_found');
+          assert.equal(err.error, 'not_found', 'Error should be a "not_found" error');
         }
       )
       .then(
