@@ -16,6 +16,12 @@ initialize the backups and monitor their continued success with this tool. It
 is up to the user to take snapshots of the database in order to satisfy
 rollback capabilities.
 
+## Quick Start Guide
+
+`savemyseat` commands require a json file that describes the databases to be
+backed up. Before we begin using `savemyseat` we need to create this
+configuration file, like so::
+    
 ## Command line interface
 
 ### Initialize the replicator database
