@@ -20,7 +20,7 @@ var path = require('path');
 var util = require('util');
 var program = require('commander');
 var _ = require('lodash');
-var Q = require('Q');
+var Q = require('q');
 var nanoInit = require('nano');
 var Savemyseat = require('../lib/savemyseat').Savemyseat;
 
