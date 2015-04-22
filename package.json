@@ -1,6 +1,6 @@
 {
   "name": "savemyseat",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "scripts": {
     "test": "mocha tests/large"
   },
@@ -18,7 +18,8 @@
   "bin": {
     "savemyseat": "./bin/savemyseat",
     "savemyseat-initialize": "./bin/savemyseat-initialize",
-    "savemyseat-monitor": "./bin/savemyseat-monitor"
+    "savemyseat-monitor": "./bin/savemyseat-monitor",
+    "savemyseat-prepare-sources": "./bin/savemyseat-prepare-sources"
   },
   "devDependencies": {
     "chai": "^2.2.0",
