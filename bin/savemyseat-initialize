@@ -25,7 +25,7 @@ var nanoInit = require('nano');
 var Savemyseat = require('../lib/savemyseat').Savemyseat;
 
 program
-  .version(require('./package.json').version)
+  .version(require('../package.json').version)
   .option('-d, --db-url [dbUrl]', 'The database host [http://127.0.0.1:5984]', 'http://127.0.0.1:5984')
   .parse(process.argv);
 
