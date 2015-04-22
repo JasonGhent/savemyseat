@@ -22,4 +22,5 @@ program
   .version('0.1.0')
   .command('initialize [database-config]', 'initialize the backup database')
   .command('monitor [database-config]', 'monitor the current backups running in the database')
+  .command('prepare-sources [database-config]', 'prepare the source databases for being backed up')
   .parse(process.argv);
