@@ -28,7 +28,7 @@ function getNumber(val) {
 }
 
 program
-  .version('0.1.0')
+  .version(require('./package.json').version)
   .option('-d, --db-url [dbUrl]', 'The database host [http://127.0.0.1:5984]', 'http://127.0.0.1:5984')
   .option('-i, --poll-interval [pollInterval]', 'The interval by which to poll the couchdb server', getNumber, 10000)
   .option('-t, --document-count-delta-threshold [documentCountDeltaThreshold]', 'When comparing source and destination, this is the threshold for the document count delta. Any delta greater than this triggers an error', getNumber, 100)
