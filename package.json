@@ -8,8 +8,9 @@
     "commander": "2.7.x",
     "debug": "2.1.x",
     "lodash": "3.5.x",
-    "moment": "2.9.x",
+    "moment": "^2.9.0",
     "nano": "6.1.x",
+    "precond": "^0.2.3",
     "q": "1.1.x",
     "superagent": "^1.0.0",
     "uuid": "^2.0.1"

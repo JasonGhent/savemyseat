@@ -20,6 +20,7 @@ var path = require('path');
 var program = require('commander');
 var request = require('superagent');
 var _ = require('lodash');
+var util = require('util');
 var Savemyseat = require('../lib/savemyseat').Savemyseat;
 
 function getNumber(val) {
@@ -31,6 +32,7 @@ program
   .option('-d, --db-url [dbUrl]', 'The database host [http://127.0.0.1:5984]', 'http://127.0.0.1:5984')
   .option('-i, --poll-interval [pollInterval]', 'The interval by which to poll the couchdb server', getNumber, 10000)
   .option('-t, --document-count-delta-threshold [documentCountDeltaThreshold]', 'When comparing source and destination, this is the threshold for the document count delta. Any delta greater than this triggers an error', getNumber, 100)
+  .option('-n, --notifier [notifier]', 'The notifier to use. Defaults to [pagerduty]', 'pagerduty')
   .parse(process.argv);
 
 /**
@@ -43,8 +45,10 @@ function monitor() {
     documentCountDeltaThreshold: program.documentCountDeltaThreshold
   });
 
+  var notifier = require(util.format('../lib/notifiers/%s', program.notifier))(monitoringDaemon);
+
   monitoringDaemon.on('error-triggered', function(name, messages, id) {
-    console.log(JSON.stringify({
+    console.error(JSON.stringify({
       id: id,
       type: "error-triggered",
       name: name,
@@ -53,7 +57,7 @@ function monitor() {
   });
   
   monitoringDaemon.on('error-resolved', function(name, messages, id) {
-    console.log(JSON.stringify({
+    console.error(JSON.stringify({
       id: id,
       type: "error-resolved",
       name: name,
@@ -62,7 +66,7 @@ function monitor() {
   });
 
   monitoringDaemon.on('error', function(err) {
-    console.log(JSON.stringify(err));
+    console.error(JSON.stringify(err));
   });
   
   process.on('SIGTERM', function() {
