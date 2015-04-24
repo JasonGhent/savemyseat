@@ -2,7 +2,7 @@
   "name": "savemyseat",
   "version": "0.1.8",
   "scripts": {
-    "test": "mocha tests/large"
+    "test": "./node_modules/.bin/mocha tests/large"
   },
   "dependencies": {
     "commander": "2.7.x",
@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "chai": "^2.2.0",
-    "couchdb-fixture": "0.1.x"
+    "couchdb-fixture": "0.1.x",
+    "mocha": "^2.2.4"
   }
 }

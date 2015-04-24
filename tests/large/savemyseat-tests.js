@@ -209,6 +209,4 @@ describe('Savemyseat', function() {
         }
       );
   });
-
-
 });
